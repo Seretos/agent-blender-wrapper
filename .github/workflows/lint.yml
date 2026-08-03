@@ -1,0 +1,67 @@
+name: lint
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin.json is valid JSON
+        run: jq empty .claude-plugin/plugin.json
+
+      - name: Validate codex plugin.json is valid JSON
+        run: jq empty .codex-plugin/plugin.json
+
+      # The wrapped MCP is pinned to an exact version in BOTH manifests so uvx
+      # reuses one cached environment. A drift between them would silently give
+      # Claude and Codex different servers.
+      - name: Validate the blender-mcp pin matches across manifests
+        run: |
+          CLAUDE_PIN=$(jq -r '.mcpServers.blender.args | index("--from") as $i | .[$i + 1]' .claude-plugin/plugin.json)
+          CODEX_PIN=$(jq -r '.mcpServers.blender.args | index("--from") as $i | .[$i + 1]' .codex-plugin/plugin.json)
+          echo "claude: $CLAUDE_PIN / codex: $CODEX_PIN"
+          if [ -z "$CLAUDE_PIN" ] || [ "$CLAUDE_PIN" = "null" ]; then
+            echo "::error::No --from pin found in .claude-plugin/plugin.json"; exit 1
+          fi
+          case "$CLAUDE_PIN" in
+            blender-mcp==*) ;;
+            *) echo "::error::Pin '$CLAUDE_PIN' must be an exact blender-mcp==X.Y.Z pin"; exit 1 ;;
+          esac
+          if [ "$CLAUDE_PIN" != "$CODEX_PIN" ]; then
+            echo "::error::Manifest pins differ: '$CLAUDE_PIN' vs '$CODEX_PIN'"; exit 1
+          fi
+          echo "Pin check: OK"
+
+      - name: Validate telemetry stays disabled in both manifests
+        run: |
+          for manifest in .claude-plugin/plugin.json .codex-plugin/plugin.json; do
+            VAL=$(jq -r '.mcpServers.blender.env.BLENDER_MCP_DISABLE_TELEMETRY' "$manifest")
+            if [ "$VAL" != "true" ]; then
+              echo "::error::$manifest must set BLENDER_MCP_DISABLE_TELEMETRY=true (got '$VAL'). See AGENTS.md."
+              exit 1
+            fi
+          done
+          echo "Telemetry check: OK"
+
+      - name: Validate SKILL.md has YAML frontmatter
+        run: |
+          python3 - <<'EOF'
+          import re, sys
+          text = open("skills/blender-wrapper/SKILL.md", encoding="utf-8").read()
+          m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+          if not m:
+              print("::error::SKILL.md missing YAML frontmatter"); sys.exit(1)
+          fm = m.group(1)
+          if "name:" not in fm or "description:" not in fm:
+              print("::error::SKILL.md frontmatter missing 'name' or 'description'"); sys.exit(1)
+          print("SKILL.md: OK")
+          EOF
