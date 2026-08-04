@@ -40,9 +40,11 @@ Upstream BlenderMCP enables telemetry by default: anonymous session IDs, tool na
 
 Because a manifest `env` value takes precedence over your shell environment, re-enabling telemetry means removing that `env` block from the manifest — setting the variable yourself won't override it.
 
-## What the skill teaches
+## What the skills teach
 
 See `skills/blender-wrapper/SKILL.md` for the full content: the inspect → change → verify loop, the complete tool inventory (scene/object introspection, viewport screenshots, `execute_blender_code`, Poly Haven, Sketchfab, Hyper3D Rodin, Hunyuan3D), recipes for common requests, and the pitfalls that matter — chiefly that `execute_blender_code` runs arbitrary Python inside the user's Blender.
+
+See `skills/blender-game-export/SKILL.md` for getting a finished asset out of Blender and into a game engine: the copy-verbatim FBX export preset, why default settings leave node scale at 100 and node rotation at ~270°, the engine-space axis mapping (including the X mirror on import), the `bake_space_transform` caveat for rigged/animated assets, what FBX cannot carry (colliders, rigidbodies, tags), and a bundled stdlib-only script (`scripts/verify_fbx.py`) that reads a binary FBX back to check the export instead of trusting the settings.
 
 ## Troubleshooting
 

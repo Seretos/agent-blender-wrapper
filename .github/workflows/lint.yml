@@ -52,16 +52,11 @@ jobs:
           done
           echo "Telemetry check: OK"
 
-      - name: Validate SKILL.md has YAML frontmatter
-        run: |
-          python3 - <<'EOF'
-          import re, sys
-          text = open("skills/blender-wrapper/SKILL.md", encoding="utf-8").read()
-          m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
-          if not m:
-              print("::error::SKILL.md missing YAML frontmatter"); sys.exit(1)
-          fm = m.group(1)
-          if "name:" not in fm or "description:" not in fm:
-              print("::error::SKILL.md frontmatter missing 'name' or 'description'"); sys.exit(1)
-          print("SKILL.md: OK")
-          EOF
+      # Validates every skills/*/SKILL.md (frontmatter, name == directory
+      # name, fenced python blocks compile, per-skill content markers). See
+      # scripts/check_skills.py for the full contract.
+      - name: Validate skills/*/SKILL.md
+        run: python3 scripts/check_skills.py
+
+      - name: Compile-check all Python shipped under skills/
+        run: python3 -m compileall -q skills
