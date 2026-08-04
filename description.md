@@ -22,6 +22,8 @@ visually verifying the result — instead of writing Python into the dark.
 - **Full `bpy` scripting when it's the right tool** — arbitrary Python
   execution inside Blender, with the skill's guardrails on how to keep it
   small, non-destructive, and verifiable.
+- **Game-engine-ready FBX export** — unit scale, axis conversion, and a
+  bundled verifier so an export is checked, not just assumed correct.
 - **Telemetry off by default** — upstream BlenderMCP reports usage to a
   third-party endpoint unless disabled; this plugin disables it in the
   manifest.
