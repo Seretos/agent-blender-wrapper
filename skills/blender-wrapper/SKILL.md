@@ -25,6 +25,10 @@ what is in the scene, building or editing geometry, assigning materials,
 lighting a shot, pulling in external assets, or verifying visually what the
 scene currently looks like.
 
+Getting a finished asset **out** of Blender and into a game engine (FBX
+export settings, unit/axis conversion, verifying the export) is out of scope
+here — use the `blender-game-export` skill for that.
+
 The central rule is: **look before you act, and look again after you act.**
 Blender scene state is persistent and mutable — the agent does not hold it, the
 running Blender process does. Every assumption about object names, transforms,
